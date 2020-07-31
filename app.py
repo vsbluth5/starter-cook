@@ -4,14 +4,9 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from datetime import datetime
-from model import getRecipe
-from model import fix_query
-# from model import getImageUrlFrom
+from model import getRecipe, fix_query, getRecipeByID
 from flask_pymongo import PyMongo
 import os
-
-
-# sudo pip3 install dnspython
 
 # -- Initialization section --
 app = Flask(__name__)
@@ -19,8 +14,6 @@ app = Flask(__name__)
 # app.config['GIPHY_KEY'] = os.getenv("GIPHY_KEY")
 app.config['TRIP_KEY'] = 'a5f304028dmsh7d1413cbfff8d76p13efabjsnf5bba74c75e5'
 # .env will not be push to git hub 
-
-
 
 # name of database
 app.config['MONGO_DBNAME'] = 'cook'
@@ -75,6 +68,7 @@ headers = {
 @app.route('/learn_more')
 def learn_more():
     return render_template("learn_more.html", time = datetime.now())
+
 @app.route('/restaurant', methods = ['POST', 'GET'])
 def restaurant():
     # change the POST to GET 
@@ -84,17 +78,6 @@ def restaurant():
         return render_template("restaurant.html", time = datetime.now(), source=source)
     else:
         return "error"   
-
-# print(response.text)
-
-# Another function to look for api
-#look over the model project
-
-# -- Routes section --
-# @app.route('/')
-# @app.route('/learn_more')
-# def learn_more():
-#     return render_template("learn_more.html", time = datetime.now())
 
 # @app.route('/restaurant', methods = ['POST', 'GET'])
 # def restaurant():
@@ -112,30 +95,35 @@ def restaurant():
 recipe_key = 'f72d5cb516fe4796aa7d61932e477990'
 
 @app.route('/recipesearch', methods=['POST', 'GET'])
-def search_page():
-    
+def search_page():   
     return render_template('search.html')
 
 
 # Retrieves a results list of recipes
 @app.route('/recipes', methods = ['POST', 'GET'])
-def get_recipes():
- 
+def get_recipes(): 
     if request.method == 'POST':
         my_ingr = request.form['ingredients']
-        source = getRecipe(fix_query(my_ingr), recipe_key)
-        return render_template("found_recipe.html", source=source)
+        recipe_query = fix_query(my_ingr)
+        print(recipe_query)
+        source = getRecipe(recipe_query, recipe_key)
+        return render_template("found_recipe.html", source=source, recipe_qu=recipe_query)
     else:
         return render_template("search_error.html")
 
 # Retrieves specific recipe
-@app.route('/<recipe_id>')
-def get_recipe(recipe_id):
+@app.route('/<recipe_id>/<ingreds>')
+def get_recipe(recipe_id, ingreds):
+    print(recipe_id)
     recipe_query = f"https://api.spoonacular.com/recipes/{recipe_id}/analyzedInstructions?apiKey={recipe_key}"
-    response = requests.get(recipe_query).json()
-    ingredientsWidget = "recipes/{0}/ingredientWidget".format(recipe_id)
-    equipmentWidget = "recipes/{0}/equipmentWidget".format(recipe_id)
-    return render_template('recipe.html', recipe=response)
+    response1 = requests.get(recipe_query).json()
+    print(response1)
+    # print("------------------")
+    response2 = getRecipeByID(recipe_id, ingreds, recipe_key)
+    # print(response2)
+    # ingredientsWidget = "recipes/{0}/ingredientWidget".format(recipe_id)
+    # equipmentWidget = "recipes/{0}/equipmentWidget".format(recipe_id)
+    return render_template('recipe.html', recipe=response1, response = response2)
 
 #   recipe_info_endpoint = "recipes/{0}/information".format(recipe_id)
 

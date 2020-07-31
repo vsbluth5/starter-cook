@@ -19,3 +19,14 @@ def getRecipe(query_fix, key):
     recipe_query = f"https://api.spoonacular.com/recipes/findByIngredients?apiKey={key}&ingredients={query_fix}&number=5"
     response = requests.get(recipe_query).json()
     return response
+
+def getRecipeByID(id, query, key):
+    recipe_query = f"https://api.spoonacular.com/recipes/findByIngredients?apiKey={key}&ingredients={query}&number=5"
+    response = requests.get(recipe_query).json()
+    for i in range(len(response)):
+        print(type(response[i]['id']))
+        print(type(id))
+        if response[i]['id']==int(id):
+            print("Found it!")
+            return response[i]
+    return response[0]
